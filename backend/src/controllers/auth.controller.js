@@ -103,6 +103,37 @@ export const logout = (_,res) =>{
    res.status(200).json({message: 'Logout successful'});
 }
 
-export const updateProfile = async(req,res) =>{
-   
-}
+export const updateProfile = async (req, res) => {
+  try {
+    const { fullname, profilePic } = req.body;
+
+    if (!fullname && !profilePic) {
+      return res.status(400).json({ message: 'At least one field is required' });
+    }
+
+   //  if (!req.user || !req.user._id) {
+   //    return res.status(401).json({ message: 'Unauthorized' });
+   //  }
+
+    const updateData = {};
+
+    if (fullname) updateData.fullname = fullname;
+
+    if (profilePic) {
+      const uploadResponse = await cloudinary.uploader.upload(profilePic);
+      updateData.profilePic = uploadResponse.secure_url;
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user._id,
+      updateData,
+      { new: true }
+    );
+
+    res.status(200).json(updatedUser);
+
+  } catch (error) {
+    console.error("Update profile error:", error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
