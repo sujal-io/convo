@@ -5,6 +5,7 @@ import ChatPage from './pages/ChatPage'
 import LoginPage from './pages/LoginPage'
 import { useAuthStore } from './store/useAuthStore'
 import PageLoader from './components/PageLoader'
+import {Toaster} from "react-hot-toast";
 
 function App() {
 
@@ -32,6 +33,8 @@ function App() {
 
 
    </Routes>
+
+   <Toaster />
  
     </div>
    
