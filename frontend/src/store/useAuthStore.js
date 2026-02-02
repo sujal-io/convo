@@ -48,7 +48,18 @@ login: async (data) => {
     } finally{ 
       set({isLoggingIn: false});
     }
-}
+},
+
+ logout: async () => {
+    try {
+      await axiosInstance.post("/auth/logout");
+      set({ authUser: null });
+      toast.success("Logged out successfully");
+    } catch (error) {
+      toast.error("Error logging out");
+      console.log("Logout error:", error);
+    }
+  },
 
 }));
 
