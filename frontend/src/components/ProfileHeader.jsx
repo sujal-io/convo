@@ -13,18 +13,22 @@ function ProfileHeader() {
 
   const fileInputRef = useRef(null);
 
-  const handleImageUpload = (e) => {
-     const file = e.target.files[0];
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
+    // Preview quickly using object URL
+    const objectUrl = URL.createObjectURL(file);
+    setSelectedImg(objectUrl);
 
-    reader.onloadend = async () => {
-      const base64Image = reader.result;
-      setSelectedImg(base64Image);
-      await updateProfile({ profilePic: base64Image });
-    };
+    // Use FormData to upload binary file instead of large base64
+    const fd = new FormData();
+    fd.append('profilePic', file);
+
+    await updateProfile(fd);
+
+    // cleanup
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 5000);
   };
 
   return (

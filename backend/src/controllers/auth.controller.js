@@ -108,7 +108,7 @@ export const updateProfile = async (req, res) => {
   try {
     const { fullname, profilePic } = req.body;
 
-    if (!fullname && !profilePic) {
+    if (!fullname && !profilePic && !req.file) {
       return res.status(400).json({ message: 'At least one field is required' });
     }
 
@@ -120,7 +120,24 @@ export const updateProfile = async (req, res) => {
 
     if (fullname) updateData.fullname = fullname;
 
-    if (profilePic) {
+    if (req.file) {
+      // Upload buffer from multer to Cloudinary using upload_stream
+      const buffer = req.file.buffer;
+      try {
+        const uploadResponse = await new Promise((resolve, reject) => {
+          const stream = cloudinary.uploader.upload_stream({ folder: 'profile_pics' }, (error, result) => {
+            if (error) return reject(error);
+            resolve(result);
+          });
+          stream.end(buffer);
+        });
+
+        updateData.profilePic = uploadResponse.secure_url;
+      } catch (uploadErr) {
+        console.error('Cloudinary upload error:', uploadErr);
+        return res.status(500).json({ message: 'Failed to upload image' });
+      }
+    } else if (profilePic) {
       const uploadResponse = await cloudinary.uploader.upload(profilePic);
       updateData.profilePic = uploadResponse.secure_url;
     }
