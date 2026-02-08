@@ -9,8 +9,10 @@ import cors from 'cors';
 const app = express();
 const PORT = ENV.PORT || 3000;
 
-app.use(express.json());
+// Enable CORS early so even parsing errors include CORS headers
 app.use(cors({origin: ENV.CLIENT_URL, credentials: true})); // allows frontend to send cookies to our backend
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
 app.use('/api/auth', authRoutes);
