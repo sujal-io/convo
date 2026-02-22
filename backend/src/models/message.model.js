@@ -12,6 +12,11 @@ const messageSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    groupId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Group",
+      default: null,
+    },
     text: {
       type: String,
       trim: true,
