@@ -42,3 +42,23 @@ export const createGroup = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const getUserGroups = async (req, res) => {
+  try {
+
+    // 1️⃣ Get logged-in user id from middleware
+    const userId = req.user._id;
+
+    // 2️⃣ Find all groups where this user is present in members array
+    const groups = await Group.find({
+      members: userId
+    });
+
+    // 3️⃣ Send response
+    res.status(200).json(groups);
+
+  } catch (error) {
+    console.error("Get groups error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
