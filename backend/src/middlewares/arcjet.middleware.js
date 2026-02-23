@@ -3,6 +3,12 @@ import { isSpoofedBot } from "@arcjet/inspect";
 
 export const arcjetProtection = async (req, res, next) => {
   try {
+
+    //  Skip Arcjet in development
+    if (process.env.NODE_ENV === "development") {
+      return next();
+    }
+
     const decision = await aj.protect(req);
 
     if (decision.isDenied()) {
@@ -14,8 +20,6 @@ export const arcjetProtection = async (req, res, next) => {
         return res.status(403).json({ message: "Access denied" });
       }
     }
-
-    //check for spoofed bots
 
     if (decision.results.some(isSpoofedBot)) {
       return res.status(403).json({
