@@ -1,7 +1,7 @@
 import express from "express";
 import { protectRoute } from "../middlewares/auth.middleware.js";
 import { arcjetProtection } from "../middlewares/arcjet.middleware.js";
-import { createGroup, getUserGroups, addMembersToGroup } from "../controllers/group.controller.js";
+import { createGroup, getUserGroups, addMembersToGroup, removeMembersFromGroup } from "../controllers/group.controller.js";
 
 const router = express.Router();
 
@@ -13,6 +13,6 @@ router.get("/groups", getUserGroups);
 
 router.post("/add-members", addMembersToGroup);
 
-// router.post("/remove-members", removeMembersFromGroup);
+router.post("/remove-members", removeMembersFromGroup);
 
 export default router;
