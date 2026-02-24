@@ -45,18 +45,16 @@ export const createGroup = async (req, res) => {
 
 export const getUserGroups = async (req, res) => {
   try {
-
     // 1️⃣ Get logged-in user id from middleware
     const userId = req.user._id;
 
     // 2️⃣ Find all groups where this user is present in members array
     const groups = await Group.find({
-      members: userId
+      members: userId,
     });
 
     // 3️⃣ Send response
     res.status(200).json(groups);
-
   } catch (error) {
     console.error("Get groups error:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -65,7 +63,6 @@ export const getUserGroups = async (req, res) => {
 
 export const addMembersToGroup = async (req, res) => {
   try {
-
     const { groupId, newMembers } = req.body;
 
     const userId = req.user._id;
@@ -82,7 +79,7 @@ export const addMembersToGroup = async (req, res) => {
     }
 
     // add members without duplicates
-    newMembers.forEach(memberId => {
+    newMembers.forEach((memberId) => {
       if (!group.members.includes(memberId)) {
         group.members.push(memberId);
       }
@@ -91,9 +88,46 @@ export const addMembersToGroup = async (req, res) => {
     await group.save();
 
     res.status(200).json(group);
-
   } catch (error) {
     console.error("Add members error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const removeMembersFromGroup = async (req, res) => {
+  try {
+    const { groupId, membersToRemove } = req.body;
+    const userId = req.user._id;
+
+    const group = await Group.findById(groupId);
+
+    if (!group) {
+      return res.status(404).json({ message: "Group not found" });
+    }
+
+    // Check admin permission FIRST
+    if (group.admin.toString() !== userId.toString()) {
+      return res.status(403).json({ message: "Only admin can remove members" });
+    }
+
+    // Prevent admin from removing themselves
+    if (membersToRemove.includes(group.admin.toString())) {
+      return res.status(400).json({
+        message: "Admin cannot remove themselves from the group",
+      });
+    }
+
+    // remove members
+    group.members = group.members.filter(
+      (member) => !membersToRemove.includes(member.toString())
+    );
+
+    await group.save();
+
+    res.status(200).json(group);
+
+  } catch (error) {
+    console.error("Remove members error:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
