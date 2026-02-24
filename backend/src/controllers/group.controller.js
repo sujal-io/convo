@@ -62,3 +62,38 @@ export const getUserGroups = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const addMembersToGroup = async (req, res) => {
+  try {
+
+    const { groupId, newMembers } = req.body;
+
+    const userId = req.user._id;
+
+    const group = await Group.findById(groupId);
+
+    if (!group) {
+      return res.status(404).json({ message: "Group not found" });
+    }
+
+    // only admin can add members
+    if (group.admin.toString() !== userId.toString()) {
+      return res.status(403).json({ message: "Only admin can add members" });
+    }
+
+    // add members without duplicates
+    newMembers.forEach(memberId => {
+      if (!group.members.includes(memberId)) {
+        group.members.push(memberId);
+      }
+    });
+
+    await group.save();
+
+    res.status(200).json(group);
+
+  } catch (error) {
+    console.error("Add members error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
