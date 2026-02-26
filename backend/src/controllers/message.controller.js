@@ -2,6 +2,7 @@ import cloudinary from "../lib/cloudinary.js";
 import { getReceiverSocketId, io } from "../lib/socket.js";
 import Message from "../models/message.model.js";
 import User from "../models/user.model.js";
+import Group from "../models/group.model.js";
 
 export const getAllContacts = async (req, res) => {
     try {
@@ -67,6 +68,28 @@ export const sendMessage = async (req, res) => {
     const { text, image, groupId } = req.body;
     const { id: receiverId } = req.params;
     const senderId = req.user._id;
+
+    // check if sender is part of group before sending message
+if (groupId) {
+
+  const group = await Group.findById(groupId);
+
+  if (!group) {
+    return res.status(404).json({
+      message: "Group not found"
+    });
+  }
+
+  const isMember = group.members.some(
+    (member) => member.toString() === senderId.toString()
+  );
+
+  if (!isMember) {
+    return res.status(403).json({
+      message: "You are not a member of this group"
+    });
+  }
+}
 
     // message must belong to either user OR group
     if (!receiverId && !groupId) {
