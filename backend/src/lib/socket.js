@@ -3,6 +3,7 @@ import http from "http";
 import express from "express";
 import { ENV } from "./env.js";
 import { socketAuthMiddleware } from "../middlewares/socket.auth.middleware.js";
+import Message from "../models/message.model.js";
 
 const app = express();
 const server = http.createServer(app);
@@ -40,6 +41,34 @@ io.on("connection", (socket) => {
     delete userSocketMap[userId];
     io.emit("getOnlineUsers", Object.keys(userSocketMap));
   });
+
+  socket.on("messageDelivered", async ({ messageId }) => {
+  try {
+
+    const message = await Message.findById(messageId);
+
+    if (!message) return;
+
+    // update only if not already delivered
+    if (message.status === "sent") {
+      message.status = "delivered";
+      message.deliveredAt = new Date();
+      await message.save();
+    }
+
+    // notify original sender
+    const senderSocketId = userSocketMap[message.senderId];
+
+    if (senderSocketId) {
+      io.to(senderSocketId).emit("messageDeliveredUpdate", {
+        messageId: message._id,
+      });
+    }
+
+  } catch (error) {
+    console.log("Delivery ack error:", error);
+  }
+});
 });
 
 export { io, app, server };
