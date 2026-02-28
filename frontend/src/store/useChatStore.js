@@ -56,11 +56,11 @@ export const useChatStore = create((set, get) => ({
     }
   },
 
-  sendMessage: async(messageData) =>{
-     const {selectedUser, messages} = get();
-     const {authUser} = useAuthStore.getState();
+  sendMessage: async (messageData) => {
+    const { selectedUser, messages } = get();
+    const { authUser } = useAuthStore.getState();
 
-     const tempId = `temp-${Date.now()}`;
+    const tempId = `temp-${Date.now()}`;
 
     const optimisticMessage = {
       _id: tempId,
@@ -74,12 +74,15 @@ export const useChatStore = create((set, get) => ({
     // immideately update the ui by adding the message
     set({ messages: [...messages, optimisticMessage] });
 
-      try{
-        const res = await axiosInstance.post(`/messages/send/${selectedUser._id}`, messageData);
-      } catch (error) {
-        set({messages:messages}) // remove optimistic message on failure
-        toast.error(error.response.data.message); 
-      }
+    try {
+      const res = await axiosInstance.post(
+        `/messages/send/${selectedUser._id}`,
+        messageData,
+      );
+    } catch (error) {
+      set({ messages: messages }); // remove optimistic message on failure
+      toast.error(error.response.data.message);
+    }
   },
 
   subscribeToMessages: () => {
@@ -90,18 +93,31 @@ export const useChatStore = create((set, get) => ({
     const { authUser } = useAuthStore.getState();
 
     socket.on("newMessage", (newMessage) => {
-      if (isSoundEnabled && newMessage.senderId !== authUser._id) {
-        const notificationSound = new Audio("/sounds/notification.mp3");
+      const { authUser } = useAuthStore.getState();
 
-        notificationSound.currentTime = 0; // reset to start
-        notificationSound.play().catch((e) => console.log("Audio play failed:", e));
-      }
+      const isMessageSentFromSelectedUser =
+        newMessage.senderId === selectedUser._id;
 
-      const isMessageSentFromSelectedUser = newMessage.senderId === selectedUser._id;
       if (!isMessageSentFromSelectedUser) return;
 
       const currentMessages = get().messages;
+
       set({ messages: [...currentMessages, newMessage] });
+
+      // 🔴 THIS IS THE IMPORTANT PART
+      // tell backend that this message has reached receiver
+
+      if (newMessage.receiverId === authUser._id) {
+        socket.emit("messageDelivered", {
+          messageId: newMessage._id,
+        });
+      }
+
+      if (isSoundEnabled && newMessage.senderId !== authUser._id) {
+        const notificationSound = new Audio("/sounds/notification.mp3");
+        notificationSound.currentTime = 0;
+        notificationSound.play().catch(() => {});
+      }
     });
   },
 
@@ -109,4 +125,4 @@ export const useChatStore = create((set, get) => ({
     const socket = useAuthStore.getState().socket;
     socket.off("newMessage");
   },
-  }));
+}));
