@@ -10,7 +10,7 @@ const messageSchema = new mongoose.Schema(
     receiverId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: function() {
+      required: function () {
         return !this.groupId;
       },
     },
@@ -27,8 +27,21 @@ const messageSchema = new mongoose.Schema(
     image: {
       type: String,
     },
+    status: {
+      type: String,
+      enum: ["sent", "delivered", "seen"],
+      default: "sent",
+    },
+
+    deliveredAt: {
+      type: Date,
+    },
+
+    seenAt: {
+      type: Date,
+    },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const Message = mongoose.model("Message", messageSchema);
