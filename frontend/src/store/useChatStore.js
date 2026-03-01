@@ -119,6 +119,26 @@ export const useChatStore = create((set, get) => ({
         notificationSound.play().catch(() => {});
       }
     });
+
+    socket.on("messageDeliveredUpdate", ({ messageId }) => {
+
+  const currentMessages = get().messages;
+
+  const updatedMessages = currentMessages.map((msg) => {
+
+    if (msg._id === messageId) {
+      return {
+        ...msg,
+        status: "delivered"
+      };
+    }
+
+    return msg;
+  });
+
+  set({ messages: updatedMessages });
+
+});
   },
 
   unsubscribeFromMessages: () => {
