@@ -7,19 +7,30 @@ import MessageInput from "./MessageInput";
 import MessagesLoadingSkeleton from "./MessagesLoadingSkeleton";
 
 function ChatContainer() {
-  const { selectedUser, getMessagesByUserId, messages, isMessagesLoading,
-     subscribeToMessages,unsubscribeFromMessages } = useChatStore();
-  const { authUser } = useAuthStore();  
+  const {
+    selectedUser,
+    getMessagesByUserId,
+    messages,
+    isMessagesLoading,
+    subscribeToMessages,
+    unsubscribeFromMessages,
+  } = useChatStore();
+  const { authUser } = useAuthStore();
   const messageEndRef = useRef(null);
 
   useEffect(() => {
-   getMessagesByUserId(selectedUser._id);
-    subscribeToMessages()
+    getMessagesByUserId(selectedUser._id);
+    subscribeToMessages();
 
     return () => {
       unsubscribeFromMessages();
-    } 
-  }, [selectedUser, getMessagesByUserId, subscribeToMessages, unsubscribeFromMessages]);
+    };
+  }, [
+    selectedUser,
+    getMessagesByUserId,
+    subscribeToMessages,
+    unsubscribeFromMessages,
+  ]);
 
   useEffect(() => {
     if (messageEndRef.current) {
@@ -27,13 +38,12 @@ function ChatContainer() {
     }
   }, [messages]);
 
-
   return (
     <>
-    <ChatHeader />
-    <div className="flex-1 px-6 overflow-y-auto  py-8">
-      {messages.length >0 && !isMessagesLoading ?(
-       <div className="max-w-3xl mx-auto space-y-6">
+      <ChatHeader />
+      <div className="flex-1 px-6 overflow-y-auto  py-8">
+        {messages.length > 0 && !isMessagesLoading ? (
+          <div className="max-w-3xl mx-auto space-y-6">
             {messages.map((msg) => (
               <div
                 key={msg._id}
@@ -47,32 +57,47 @@ function ChatContainer() {
                   }`}
                 >
                   {msg.image && (
-                    <img src={msg.image} alt="Shared" className="rounded-lg h-48 object-cover" />
+                    <img
+                      src={msg.image}
+                      alt="Shared"
+                      className="rounded-lg h-48 object-cover"
+                    />
                   )}
                   {msg.text && <p className="mt-2">{msg.text}</p>}
                   <p className="text-xs mt-1 opacity-75 flex items-center gap-1">
-                    {new Date(msg.createdAt).toLocaleTimeString(undefined, {
+                    {new Date(msg.createdAt).toLocaleTimeString([], {
                       hour: "2-digit",
                       minute: "2-digit",
                     })}
+
+                    {/* STATUS ICON */}
+                    {msg.senderId === authUser._id && (
+                      <span className="ml-1">
+                        {msg.status === "sent" && "✔"}
+                        {msg.status === "delivered" && "✔✔"}
+                        {msg.status === "seen" && (
+                          <span className="text-blue-400">✔✔</span>
+                        )}
+                      </span>
+                    )}
                   </p>
                 </div>
               </div>
             ))}
 
             {/*this is for auto scrolling to the latest message, def add this*/}
-            <div ref={messageEndRef}/>
-
+            <div ref={messageEndRef} />
           </div>
-      ) : isMessagesLoading ? <MessagesLoadingSkeleton /> : (
-        <NoChatHistoryPlaceholder name = {selectedUser.fullname} />
-      )}
+        ) : isMessagesLoading ? (
+          <MessagesLoadingSkeleton />
+        ) : (
+          <NoChatHistoryPlaceholder name={selectedUser.fullname} />
+        )}
+      </div>
 
-    </div>
-
-    <MessageInput />
+      <MessageInput />
     </>
-  )
+  );
 }
 
-export default ChatContainer
+export default ChatContainer;
