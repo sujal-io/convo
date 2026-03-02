@@ -23,6 +23,8 @@ export const getMessagesByUserId = async (req, res) => {
     const myId = req.user._id;
     const { id } = req.params;
     let { type } = req.query;
+
+    
     
     // Determine type from route if not explicitly provided
     const routePath = req.route?.path || "";

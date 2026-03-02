@@ -9,7 +9,8 @@ import MessagesLoadingSkeleton from "./MessagesLoadingSkeleton";
 function ChatContainer() {
   const {
     selectedUser,
-    getMessagesByUserId,
+    getMessages,
+    selectedChatType,
     messages,
     isMessagesLoading,
     subscribeToMessages,
@@ -19,18 +20,24 @@ function ChatContainer() {
   const messageEndRef = useRef(null);
 
   useEffect(() => {
-    getMessagesByUserId(selectedUser._id);
-    subscribeToMessages();
 
-    return () => {
-      unsubscribeFromMessages();
-    };
-  }, [
-    selectedUser,
-    getMessagesByUserId,
-    subscribeToMessages,
-    unsubscribeFromMessages,
-  ]);
+  if (selectedUser && selectedChatType) {
+    getMessages();
+  }
+
+  subscribeToMessages();
+
+  return () => {
+    unsubscribeFromMessages();
+  };
+
+}, [
+  selectedUser,
+  selectedChatType,
+  getMessages,
+  subscribeToMessages,
+  unsubscribeFromMessages,
+]);
 
   useEffect(() => {
     if (messageEndRef.current) {
