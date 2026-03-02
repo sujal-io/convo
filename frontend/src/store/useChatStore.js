@@ -9,6 +9,7 @@ export const useChatStore = create((set, get) => ({
   messages: [],
   activeTab: "chats",
   selectedUser: null,
+  selectedChatType: null, // "personal" or "group"
   isUsersLoading: false,
   isMessagesLoading: false,
   isSoundEnabled: JSON.parse(localStorage.getItem("isSoundEnabled")) === true,
@@ -19,7 +20,19 @@ export const useChatStore = create((set, get) => ({
   },
 
   setActiveTab: (tab) => set({ activeTab: tab }),
-  setSelectedUser: (selectedUser) => set({ selectedUser }),
+  setSelectedUser: (selectedUser) =>
+  set({
+    selectedUser,
+    selectedChatType: "personal",
+    messages: []   // clear old chat messages
+  }),
+
+  setSelectedGroup: (group) =>
+  set({
+    selectedUser: group,
+    selectedChatType: "group",
+    messages: []   // clear old chat messages
+  }),
 
   getAllContacts: async () => {
     set({ isUsersLoading: true });
@@ -101,8 +114,12 @@ export const useChatStore = create((set, get) => ({
       if (!isMessageSentFromSelectedUser) return;
 
       const currentMessages = get().messages;
+set({ messages: [...currentMessages, newMessage] });
 
-      set({ messages: [...currentMessages, newMessage] });
+// 🔥 TELL BACKEND THAT MESSAGE WAS RECEIVED
+socket.emit("messageDelivered", {
+  messageId: newMessage._id
+});
 
       // 🔴 THIS IS THE IMPORTANT PART
       // tell backend that this message has reached receiver
