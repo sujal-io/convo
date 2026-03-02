@@ -57,17 +57,31 @@ export const useChatStore = create((set, get) => ({
     }
   },
 
-  getMessagesByUserId: async (userId) => {
-    set({ isMessagesLoading: true });
-    try {
-      const res = await axiosInstance.get(`/messages/${userId}?type=personal`);
-      set({ messages: res.data });
-    } catch (error) {
-      toast.error(error.response.data.message);
-    } finally {
-      set({ isMessagesLoading: false });
-    }
-  },
+  getMessages: async () => {
+  const { selectedUser, selectedChatType } = get();
+
+  if (!selectedUser || !selectedChatType) return;
+
+  set({ isMessagesLoading: true });
+
+  try {
+
+    const type = selectedChatType === "group"
+      ? "group"
+      : "personal";
+
+    const res = await axiosInstance.get(
+      `/messages/${selectedUser._id}?type=${type}`
+    );
+
+    set({ messages: res.data });
+
+  } catch (error) {
+    toast.error(error.response.data.message);
+  } finally {
+    set({ isMessagesLoading: false });
+  }
+},
 
   sendMessage: async (messageData) => {
     const { selectedUser, messages } = get();
