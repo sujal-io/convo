@@ -84,34 +84,59 @@ export const useChatStore = create((set, get) => ({
 },
 
   sendMessage: async (messageData) => {
-    const { selectedUser, messages } = get();
-    const { authUser } = useAuthStore.getState();
 
-    const tempId = `temp-${Date.now()}`;
+  const { selectedUser, selectedChatType, messages } = get();
+  const { authUser } = useAuthStore.getState();
 
-    const optimisticMessage = {
-      _id: tempId,
-      senderId: authUser._id,
-      receiverId: selectedUser._id,
-      text: messageData.text,
-      image: messageData.image,
-      createdAt: new Date().toISOString(),
-      isOptimistic: true, // flag to identify optimistic messages (optional)
-    };
-    // immideately update the ui by adding the message
-    set({ messages: [...messages, optimisticMessage] });
+  const tempId = `temp-${Date.now()}`;
 
-    try {
-      const res = await axiosInstance.post(
+  const optimisticMessage = {
+    _id: tempId,
+    senderId: authUser._id,
+    text: messageData.text,
+    image: messageData.image,
+    createdAt: new Date().toISOString(),
+    isOptimistic: true,
+  };
+
+  // PERSONAL
+  if (selectedChatType === "personal") {
+    optimisticMessage.receiverId = selectedUser._id;
+  }
+
+  // GROUP
+  if (selectedChatType === "group") {
+    optimisticMessage.groupId = selectedUser._id;
+  }
+
+  set({ messages: [...messages, optimisticMessage] });
+
+  try {
+
+    if (selectedChatType === "personal") {
+
+      await axiosInstance.post(
         `/messages/send/${selectedUser._id}`,
-        messageData,
+        messageData
       );
-    } catch (error) {
-      set({ messages: messages }); // remove optimistic message on failure
-      toast.error(error.response.data.message);
-    }
-  },
 
+    } else {
+
+      await axiosInstance.post(
+        `/messages/send/null`,
+        {
+          ...messageData,
+          groupId: selectedUser._id
+        }
+      );
+
+    }
+
+  } catch (error) {
+    set({ messages });
+    toast.error(error.response?.data?.message || "Send failed");
+  }
+},
   subscribeToMessages: () => {
     const { selectedUser, isSoundEnabled } = get();
     if (!selectedUser) return;
