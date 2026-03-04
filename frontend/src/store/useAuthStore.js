@@ -87,26 +87,38 @@ updateProfile: async (data) => {
     }
   },
 
-  connectSocket: (token) => {
+  connectSocket: () => {
     const { authUser } = get();
+
     if (!authUser || get().socket?.connected) return;
 
     const socket = io(BASE_URL, {
-      withCredentials: true, // this ensures cookies are sent with the connection
+      withCredentials: true,
+      transports: ["websocket"],
     });
 
-    socket.connect();
+    socket.on("connect", () => {
+      console.log("✅ Socket connected:", socket.id);
+    });
+
+    socket.on("disconnect", () => {
+      console.log("❌ Socket disconnected");
+      set({ onlineUsers: [] });
+    });
+
+    socket.on("getOnlineUsers", (onlineUsers) => {
+      set({ onlineUsers });
+    });
 
     set({ socket });
-
-    // listen for online users event
-    socket.on("getOnlineUsers", (userIds) => {
-      set({ onlineUsers: userIds });
-    });
   },
 
   disconnectSocket: () => {
-    if (get().socket?.connected) get().socket.disconnect();
+    const socket = get().socket;
+    if (socket?.connected) {
+      socket.disconnect();
+    }
+    set({ socket: null, onlineUsers: [] });
   }
    
 
