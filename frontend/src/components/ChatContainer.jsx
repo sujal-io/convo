@@ -71,22 +71,11 @@ function ChatContainer() {
                     />
                   )}
                   {msg.text && <p className="mt-2">{msg.text}</p>}
-                  <p className="text-xs mt-1 opacity-75 flex items-center gap-1">
+                  <p className="text-xs mt-1 opacity-75">
                     {new Date(msg.createdAt).toLocaleTimeString([], {
                       hour: "2-digit",
                       minute: "2-digit",
                     })}
-
-                    {/* STATUS ICON */}
-                    {msg.senderId === authUser._id && (
-                      <span className="ml-1">
-                        {msg.status === "sent" && "✔"}
-                        {msg.status === "delivered" && "✔✔"}
-                        {msg.status === "seen" && (
-                          <span className="text-blue-400">✔✔</span>
-                        )}
-                      </span>
-                    )}
                   </p>
                 </div>
               </div>
