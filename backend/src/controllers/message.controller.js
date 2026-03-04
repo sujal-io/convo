@@ -53,7 +53,7 @@ export const getMessagesByUserId = async (req, res) => {
     if (type === "group") {
       messages = await Message.find({
         groupId: id
-      });
+      }).populate("senderId", "fullname profilePic");
     }
 
     res.status(200).json(messages);
