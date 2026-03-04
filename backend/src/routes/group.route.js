@@ -9,7 +9,7 @@ router.use(arcjetProtection,protectRoute);
 
 router.post("/create", createGroup);
 
-router.get("/groups", getUserGroups);
+router.get("/", getUserGroups);
 
 router.post("/add-members", addMembersToGroup);
 
