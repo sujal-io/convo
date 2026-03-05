@@ -14,6 +14,7 @@ export const useChatStore = create((set, get) => ({
   isUsersLoading: false,
   isMessagesLoading: false,
   isSoundEnabled: JSON.parse(localStorage.getItem("isSoundEnabled")) === true,
+  typingUser: null,
 
   toggleSound: () => {
     localStorage.setItem("isSoundEnabled", !get().isSoundEnabled);
@@ -21,18 +22,49 @@ export const useChatStore = create((set, get) => ({
   },
 
   setActiveTab: (tab) => set({ activeTab: tab }),
+
+  // Select a personal chat. Only clear messages when changing to a *different* user.
   setSelectedUser: (selectedUser) =>
-    set({
-      selectedUser,
-      selectedChatType: "personal",
-      messages: [], // clear old chat messages
+    set((state) => {
+      const isSameUser =
+        state.selectedChatType === "personal" &&
+        state.selectedUser?._id === selectedUser?._id;
+
+      // If user is the same, keep existing messages to avoid flicker/placeholder.
+      if (isSameUser) {
+        return {
+          selectedUser,
+          selectedChatType: "personal",
+        };
+      }
+
+      // Switching to a different user – clear old chat messages.
+      return {
+        selectedUser,
+        selectedChatType: "personal",
+        messages: [],
+      };
     }),
 
+  // Select a group chat. Same logic: only clear when switching groups.
   setSelectedGroup: (group) =>
-    set({
-      selectedUser: group,
-      selectedChatType: "group",
-      messages: [], // clear old chat messages
+    set((state) => {
+      const isSameGroup =
+        state.selectedChatType === "group" &&
+        state.selectedUser?._id === group?._id;
+
+      if (isSameGroup) {
+        return {
+          selectedUser: group,
+          selectedChatType: "group",
+        };
+      }
+
+      return {
+        selectedUser: group,
+        selectedChatType: "group",
+        messages: [],
+      };
     }),
 
   getAllContacts: async () => {
@@ -146,6 +178,14 @@ export const useChatStore = create((set, get) => ({
     const socket = useAuthStore.getState().socket;
     if (!socket) return;
     const { authUser } = useAuthStore.getState();
+
+    socket.on("userTyping", ({ userId }) => {
+      set({ typingUser: userId });
+    
+      setTimeout(() => {
+        set({ typingUser: null });
+      }, 1500);
+    });
 
     socket.on("newMessage", (newMessage) => {
       const { authUser: latestAuthUser } = useAuthStore.getState();

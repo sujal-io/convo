@@ -5,7 +5,13 @@ import { useAuthStore } from "../store/useAuthStore";
 
 function ChatHeader() {
   const { selectedUser, setSelectedUser } = useChatStore();
-  const { onlineUsers } = useAuthStore(); 
+  const { onlineUsers } = useAuthStore();
+
+  // Safeguard: if no user is selected, don't render header
+  if (!selectedUser) {
+    return null;
+  }
+
   const isOnline = onlineUsers.includes(selectedUser._id);
 
   useEffect(() => {
