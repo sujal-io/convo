@@ -3,6 +3,7 @@ import useKeyboardSound from "../hooks/useKeyboardSound";
 import { useChatStore } from "../store/useChatStore";
 import toast from "react-hot-toast";
 import { ImageIcon, SendIcon, XIcon } from "lucide-react";
+import { useAuthStore } from "../store/useAuthStore";
 
 function MessageInput() {
 
@@ -12,7 +13,7 @@ function MessageInput() {
 
   const fileInputRef = useRef(null);
 
-  const { sendMessage, isSoundEnabled } = useChatStore();
+  const { sendMessage, isSoundEnabled, selectedUser } = useChatStore();
 
   const handleSendMessage = (e) => {
     e.preventDefault();
@@ -72,11 +73,19 @@ function MessageInput() {
           value={text}
           onChange={(e) => {
             setText(e.target.value);
+
+            const socket = useAuthStore.getState().socket;
+
+            if (socket && selectedUser?._id) {
+              socket.emit("typing", {
+                receiverId: selectedUser._id,
+              });
+            }
             isSoundEnabled && playRandomKeyStrokeSound();
           }}
           className="flex-1 bg-slate-800/50 border border-slate-700/50 rounded-lg py-2 px-4"
           placeholder="Type your message..."
-        />
+        />  
 
         <input
           type="file"
@@ -89,9 +98,8 @@ function MessageInput() {
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          className={`bg-slate-800/50 text-slate-400 hover:text-slate-200 rounded-lg px-4 transition-colors ${
-            imagePreview ? "text-cyan-500" : ""
-          }`}
+          className={`bg-slate-800/50 text-slate-400 hover:text-slate-200 rounded-lg px-4 transition-colors ${imagePreview ? "text-cyan-500" : ""
+            }`}
         >
           <ImageIcon className="w-5 h-5" />
         </button>

@@ -15,27 +15,30 @@ function ChatContainer() {
     isMessagesLoading,
     subscribeToMessages,
     unsubscribeFromMessages,
+    typingUser,
   } = useChatStore();
   const { authUser } = useAuthStore();
   const messageEndRef = useRef(null);
 
+  // Fetch messages whenever the selected user or chat type changes.
+  // We depend on the whole selectedUser object so re-clicking the same user
+  // (which creates a new object reference) will still trigger a refetch.
   useEffect(() => {
     if (selectedUser && selectedChatType) {
       getMessages();
     }
+  }, [selectedUser, selectedChatType, getMessages]);
+
+  // Manage socket subscriptions per selected user.
+  useEffect(() => {
+    if (!selectedUser) return;
 
     subscribeToMessages();
 
     return () => {
       unsubscribeFromMessages();
     };
-  }, [
-    selectedUser,
-    selectedChatType,
-    getMessages,
-    subscribeToMessages,
-    unsubscribeFromMessages,
-  ]);
+  }, [selectedUser, subscribeToMessages, unsubscribeFromMessages]);
 
   useEffect(() => {
     if (messageEndRef.current) {
@@ -78,11 +81,10 @@ function ChatContainer() {
                     )}
 
                     <div
-                      className={`chat-bubble relative ${
-                        isOwnMessage
+                      className={`chat-bubble relative ${isOwnMessage
                           ? "bg-cyan-600 text-white"
                           : "bg-slate-800 text-slate-200"
-                      }`}
+                        }`}
                     >
                       {/* GROUP CHAT SENDER NAME (OTHERS ONLY) */}
                       {selectedChatType === "group" && !isOwnMessage && (
@@ -112,11 +114,17 @@ function ChatContainer() {
                       </p>
                     </div>
                   </div>
-                 
-                  
+
+
                 </div>
               );
             })}
+
+            {typingUser === selectedUser?._id && (
+              <p className="text-sm text-slate-400 mt-2">
+                {selectedUser.fullname} is typing...
+              </p>
+            )}
 
             {/*this is for auto scrolling to the latest message, def add this*/}
             <div ref={messageEndRef} />
@@ -124,7 +132,9 @@ function ChatContainer() {
         ) : isMessagesLoading ? (
           <MessagesLoadingSkeleton />
         ) : (
-          <NoChatHistoryPlaceholder name={selectedUser.fullname} />
+          <NoChatHistoryPlaceholder
+            name={selectedUser?.fullname || "this user"}
+          />
         )}
       </div>
 
