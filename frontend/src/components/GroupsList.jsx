@@ -32,8 +32,16 @@ function GroupsList() {
           className="bg-purple-500/10 p-4 rounded-lg cursor-pointer hover:bg-purple-500/20 transition-colors"
         >
           <div className="flex items-center gap-3">
-            <div className="size-12 rounded-full bg-purple-500/30 flex items-center justify-center text-white font-bold">
-              {group.name.charAt(0).toUpperCase()}
+            <div className="size-12 rounded-full bg-purple-500/30 overflow-hidden flex items-center justify-center text-white font-bold">
+              {group.groupPic ? (
+                <img
+                  src={group.groupPic}
+                  alt={group.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                group.name.charAt(0).toUpperCase()
+              )}
             </div>
             <h4 className="text-slate-200 font-medium truncate">
               {group.name}

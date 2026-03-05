@@ -94,6 +94,39 @@ export const addMembersToGroup = async (req, res) => {
   }
 };
 
+export const updateGroupPic = async (req, res) => {
+  try {
+    const { groupId, groupPic } = req.body;
+    const userId = req.user._id;
+
+    if (!groupId || !groupPic) {
+      return res
+        .status(400)
+        .json({ message: "groupId and groupPic are required" });
+    }
+
+    const group = await Group.findById(groupId);
+
+    if (!group) {
+      return res.status(404).json({ message: "Group not found" });
+    }
+
+    if (group.admin.toString() !== userId.toString()) {
+      return res
+        .status(403)
+        .json({ message: "Only admin can update group picture" });
+    }
+
+    group.groupPic = groupPic;
+    await group.save();
+
+    res.status(200).json(group);
+  } catch (error) {
+    console.error("Update group picture error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 export const removeMembersFromGroup = async (req, res) => {
   try {
     const { groupId, membersToRemove } = req.body;

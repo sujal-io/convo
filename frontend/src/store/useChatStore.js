@@ -124,6 +124,37 @@ export const useChatStore = create((set, get) => ({
     }
   },
 
+  updateGroupPic: async (groupId, groupPic) => {
+    try {
+      const res = await axiosInstance.put("/groups/update-pic", {
+        groupId,
+        groupPic,
+      });
+
+      const updatedGroup = res.data;
+
+      // update groups list
+      const currentGroups = get().groups;
+      const newGroups = currentGroups.map((g) =>
+        g._id === updatedGroup._id ? updatedGroup : g,
+      );
+
+      const { selectedUser, selectedChatType } = get();
+
+      const isCurrentGroupSelected =
+        selectedChatType === "group" && selectedUser?._id === updatedGroup._id;
+
+      set({
+        groups: newGroups,
+        selectedUser: isCurrentGroupSelected ? updatedGroup : selectedUser,
+      });
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Failed to update group picture",
+      );
+    }
+  },
+
   sendMessage: async (messageData) => {
     const { selectedUser, selectedChatType, messages } = get();
     const { authUser } = useAuthStore.getState();
