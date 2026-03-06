@@ -202,6 +202,28 @@ export const useChatStore = create((set, get) => ({
       toast.error(error.response?.data?.message || "Send failed");
     }
   },
+  deleteMessage: async (messageId) => {
+    const { messages, selectedChatType, selectedUser } = get();
+
+    // Optimistically remove the message from UI
+    const previousMessages = messages;
+    const updatedMessages = messages.filter((msg) => msg._id !== messageId);
+    set({ messages: updatedMessages });
+
+    try {
+      await axiosInstance.delete(`/messages/${messageId}`, {
+        params: {
+          // keep option open if backend ever needs context
+          type: selectedChatType === "group" ? "group" : "personal",
+          targetId: selectedUser?._id,
+        },
+      });
+    } catch (error) {
+      // rollback on failure
+      set({ messages: previousMessages });
+      toast.error(error.response?.data?.message || "Failed to delete message");
+    }
+  },
   subscribeToMessages: () => {
     const { selectedUser, isSoundEnabled } = get();
     if (!selectedUser) return;
@@ -274,11 +296,31 @@ export const useChatStore = create((set, get) => ({
 
       set({ messages: updatedMessages });
     });
+    socket.on("messageDeleted", ({ messageId }) => {
+      const currentMessages = get().messages;
+      const filtered = currentMessages.filter((msg) => msg._id !== messageId);
+      set({ messages: filtered });
+    });
+    socket.on("groupMessageDeleted", ({ messageId, groupId }) => {
+      const { selectedUser: currentSelectedUser, selectedChatType } = get();
+
+      // only update if this group chat is currently open
+      if (
+        selectedChatType === "group" &&
+        currentSelectedUser?._id === groupId
+      ) {
+        const currentMessages = get().messages;
+        const filtered = currentMessages.filter((msg) => msg._id !== messageId);
+        set({ messages: filtered });
+      }
+    });
   },
 
   unsubscribeFromMessages: () => {
     const socket = useAuthStore.getState().socket;
     socket.off("newMessage");
     socket.off("newGroupMessage");
+    socket.off("messageDeleted");
+    socket.off("groupMessageDeleted");
   },
 }));

@@ -5,6 +5,7 @@ import ChatHeader from "./ChatHeader";
 import NoChatHistoryPlaceholder from "./NoChatHistoryPlaceholder";
 import MessageInput from "./MessageInput";
 import MessagesLoadingSkeleton from "./MessagesLoadingSkeleton";
+import { Trash2 as Trash2Icon } from "lucide-react";
 
 function ChatContainer() {
   const {
@@ -16,6 +17,7 @@ function ChatContainer() {
     subscribeToMessages,
     unsubscribeFromMessages,
     typingUser,
+    deleteMessage,
   } = useChatStore();
   const { authUser } = useAuthStore();
   const messageEndRef = useRef(null);
@@ -106,12 +108,24 @@ function ChatContainer() {
                           {msg.text}
                         </p>
                       )}
-                      <p className="text-xs mt-1 opacity-75">
-                        {new Date(msg.createdAt).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </p>
+                      <div className="mt-1 flex items-center justify-between gap-2 text-xs opacity-75">
+                        <p>
+                          {new Date(msg.createdAt).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                        {isOwnMessage && (
+                          <button
+                            type="button"
+                            onClick={() => deleteMessage(msg._id)}
+                            className="ml-2 text-slate-300/70 hover:text-red-400 transition-colors"
+                            title="Delete message"
+                          >
+                            <Trash2Icon className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
 
