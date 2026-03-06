@@ -64,6 +64,56 @@ export const getMessagesByUserId = async (req, res) => {
   }
 };
 
+export const deleteMessage = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { messageId } = req.params;
+
+    const message = await Message.findOne({
+      _id: messageId,
+      senderId: userId,
+    });
+
+    if (!message) {
+      return res.status(404).json({
+        message: "Message not found or you are not allowed to delete it",
+      });
+    }
+
+    await Message.deleteOne({ _id: messageId });
+
+    // Notify participants via sockets
+    // PERSONAL CHAT
+    if (message.receiverId && !message.groupId) {
+      const receiverSocketId = getReceiverSocketId(message.receiverId.toString());
+      const senderSocketId = getReceiverSocketId(message.senderId.toString());
+
+      const payload = { messageId: message._id.toString() };
+
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit("messageDeleted", payload);
+      }
+
+      if (senderSocketId) {
+        io.to(senderSocketId).emit("messageDeleted", payload);
+      }
+    }
+
+    // GROUP CHAT
+    if (message.groupId) {
+      io.emit("groupMessageDeleted", {
+        messageId: message._id.toString(),
+        groupId: message.groupId.toString(),
+      });
+    }
+
+    res.status(200).json({ message: "Message deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting message:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 export const sendMessage = async (req, res) => {
   try {
 
