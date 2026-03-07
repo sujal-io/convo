@@ -51,7 +51,7 @@ export const getUserGroups = async (req, res) => {
     // 2️⃣ Find all groups where this user is present in members array
     const groups = await Group.find({
       members: userId,
-    });
+    }).populate("members", "fullname profilePic");
 
     // 3️⃣ Send response
     res.status(200).json(groups);
@@ -120,7 +120,11 @@ export const updateGroupPic = async (req, res) => {
     group.groupPic = groupPic;
     await group.save();
 
-    res.status(200).json(group);
+    const populated = await Group.findById(group._id).populate(
+      "members",
+      "fullname profilePic"
+    );
+    res.status(200).json(populated);
   } catch (error) {
     console.error("Update group picture error:", error);
     res.status(500).json({ message: "Internal server error" });
