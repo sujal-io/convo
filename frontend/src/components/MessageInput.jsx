@@ -13,7 +13,8 @@ function MessageInput() {
 
   const fileInputRef = useRef(null);
 
-  const { sendMessage, isSoundEnabled, selectedUser } = useChatStore();
+  const { sendMessage, isSoundEnabled, selectedUser, selectedChatType } =
+    useChatStore();
 
   const handleSendMessage = (e) => {
     e.preventDefault();
@@ -77,9 +78,11 @@ function MessageInput() {
             const socket = useAuthStore.getState().socket;
 
             if (socket && selectedUser?._id) {
-              socket.emit("typing", {
-                receiverId: selectedUser._id,
-              });
+              if (selectedChatType === "group") {
+                socket.emit("typingInGroup", { groupId: selectedUser._id });
+              } else {
+                socket.emit("typing", { receiverId: selectedUser._id });
+              }
             }
             isSoundEnabled && playRandomKeyStrokeSound();
           }}

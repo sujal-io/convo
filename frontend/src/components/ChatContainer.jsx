@@ -17,6 +17,7 @@ function ChatContainer() {
     subscribeToMessages,
     unsubscribeFromMessages,
     typingUser,
+    typingGroupUser,
     deleteMessage,
     editMessage,
   } = useChatStore();
@@ -191,11 +192,19 @@ function ChatContainer() {
               );
             })}
 
-            {typingUser === selectedUser?._id && (
-              <p className="text-sm text-slate-400 mt-2">
-                {selectedUser.fullname} is typing...
-              </p>
-            )}
+            {selectedChatType === "group" &&
+              typingGroupUser &&
+              typingGroupUser.groupId?.toString() === selectedUser?._id?.toString() && (
+                <p className="text-sm text-slate-400 mt-2">
+                  {typingGroupUser.fullname} is typing...
+                </p>
+              )}
+            {selectedChatType === "personal" &&
+              typingUser === selectedUser?._id && (
+                <p className="text-sm text-slate-400 mt-2">
+                  {selectedUser.fullname} is typing...
+                </p>
+              )}
 
             {/*this is for auto scrolling to the latest message, def add this*/}
             <div ref={messageEndRef} />
