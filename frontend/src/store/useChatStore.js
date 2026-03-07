@@ -15,6 +15,7 @@ export const useChatStore = create((set, get) => ({
   isMessagesLoading: false,
   isSoundEnabled: JSON.parse(localStorage.getItem("isSoundEnabled")) === true,
   typingUser: null,
+  typingGroupUser: null, // { userId, fullname, groupId } for group typing
 
   toggleSound: () => {
     localStorage.setItem("isSoundEnabled", !get().isSoundEnabled);
@@ -249,10 +250,21 @@ export const useChatStore = create((set, get) => ({
     const { authUser } = useAuthStore.getState();
 
     socket.on("userTyping", ({ userId }) => {
-      set({ typingUser: userId });
-    
+      set({ typingUser: userId, typingGroupUser: null });
+
       setTimeout(() => {
         set({ typingUser: null });
+      }, 1500);
+    });
+
+    socket.on("groupUserTyping", ({ groupId, userId, fullname }) => {
+      set({
+        typingUser: null,
+        typingGroupUser: { groupId, userId, fullname },
+      });
+
+      setTimeout(() => {
+        set({ typingGroupUser: null });
       }, 1500);
     });
 
@@ -283,7 +295,6 @@ export const useChatStore = create((set, get) => ({
     });
 
     socket.on("newGroupMessage", (newMessage) => {
-      console.log("GROUP SOCKET RECEIVED:", newMessage);
       const { selectedUser: currentSelectedUser, selectedChatType } = get();
 
       // only update if this group chat is currently open
@@ -357,8 +368,12 @@ export const useChatStore = create((set, get) => ({
 
   unsubscribeFromMessages: () => {
     const socket = useAuthStore.getState().socket;
+    if (!socket) return;
     socket.off("newMessage");
     socket.off("newGroupMessage");
+    socket.off("userTyping");
+    socket.off("groupUserTyping");
+    socket.off("messageDeliveredUpdate");
     socket.off("messageDeleted");
     socket.off("groupMessageDeleted");
     socket.off("messageEdited");

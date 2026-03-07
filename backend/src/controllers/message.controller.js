@@ -232,12 +232,18 @@ if (groupId) {
       }
     }
 
-    // GROUP CHAT SOCKET (we'll improve later)
+    // GROUP CHAT SOCKET – populate senderId so profile/name show immediately
+    let responseMessage = newMessage;
     if (groupId) {
-      io.emit("newGroupMessage", newMessage);
+      const populated = await Message.findById(newMessage._id).populate(
+        "senderId",
+        "fullname profilePic"
+      );
+      io.emit("newGroupMessage", populated);
+      responseMessage = populated;
     }
 
-    res.status(201).json(newMessage);
+    res.status(201).json(responseMessage);
 
   } catch (error) {
     console.error("Error sending message:", error);

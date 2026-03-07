@@ -37,12 +37,20 @@ io.on("connection", (socket) => {
 
   socket.on("typing", ({ receiverId }) => {
     const receiverSocketId = userSocketMap[receiverId];
-  
+
     if (receiverSocketId) {
       io.to(receiverSocketId).emit("userTyping", {
-        userId: socket.userId
+        userId: socket.userId,
       });
     }
+  });
+
+  socket.on("typingInGroup", ({ groupId }) => {
+    io.emit("groupUserTyping", {
+      groupId,
+      userId: socket.userId,
+      fullname: socket.user?.fullname || "Someone",
+    });
   });
 
   // with socket.on we listen for events from clients
