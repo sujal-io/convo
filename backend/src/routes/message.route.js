@@ -5,6 +5,7 @@ import {
   getMessagesByUserId,
   sendMessage,
   deleteMessage,
+  editMessage,
 } from "../controllers/message.controller.js";
 import { protectRoute } from "../middlewares/auth.middleware.js";
 import { arcjetProtection } from "../middlewares/arcjet.middleware.js";
@@ -24,6 +25,8 @@ router.get("/user/:id", getMessagesByUserId);
 router.get("/:id", getMessagesByUserId);
 
 router.post("/send/:id", sendMessage);
+
+router.put("/:messageId", editMessage);
 
 router.delete("/:messageId", deleteMessage);
 
