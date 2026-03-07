@@ -64,6 +64,64 @@ export const getMessagesByUserId = async (req, res) => {
   }
 };
 
+export const editMessage = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { messageId } = req.params;
+    const { text } = req.body;
+
+    if (!text || !text.trim()) {
+      return res.status(400).json({ message: "Text is required" });
+    }
+
+    const message = await Message.findOne({
+      _id: messageId,
+      senderId: userId,
+    });
+
+    if (!message) {
+      return res.status(404).json({
+        message: "Message not found or you are not allowed to edit it",
+      });
+    }
+
+    message.text = text.trim();
+    await message.save();
+
+    const updatedPayload = {
+      messageId: message._id.toString(),
+      text: message.text,
+      updatedAt: message.updatedAt,
+    };
+
+    // PERSONAL CHAT
+    if (message.receiverId && !message.groupId) {
+      const receiverSocketId = getReceiverSocketId(message.receiverId.toString());
+      const senderSocketId = getReceiverSocketId(message.senderId.toString());
+
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit("messageEdited", updatedPayload);
+      }
+      if (senderSocketId) {
+        io.to(senderSocketId).emit("messageEdited", updatedPayload);
+      }
+    }
+
+    // GROUP CHAT
+    if (message.groupId) {
+      io.emit("groupMessageEdited", {
+        ...updatedPayload,
+        groupId: message.groupId.toString(),
+      });
+    }
+
+    res.status(200).json(message);
+  } catch (error) {
+    console.error("Error editing message:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 export const deleteMessage = async (req, res) => {
   try {
     const userId = req.user._id;

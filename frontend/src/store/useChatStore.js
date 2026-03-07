@@ -202,6 +202,22 @@ export const useChatStore = create((set, get) => ({
       toast.error(error.response?.data?.message || "Send failed");
     }
   },
+  editMessage: async (messageId, newText) => {
+    const { messages } = get();
+
+    const previousMessages = [...messages];
+    const updatedMessages = messages.map((msg) =>
+      msg._id === messageId ? { ...msg, text: newText } : msg
+    );
+    set({ messages: updatedMessages });
+
+    try {
+      await axiosInstance.put(`/messages/${messageId}`, { text: newText });
+    } catch (error) {
+      set({ messages: previousMessages });
+      toast.error(error.response?.data?.message || "Failed to edit message");
+    }
+  },
   deleteMessage: async (messageId) => {
     const { messages, selectedChatType, selectedUser } = get();
 
@@ -314,6 +330,29 @@ export const useChatStore = create((set, get) => ({
         set({ messages: filtered });
       }
     });
+
+    socket.on("messageEdited", ({ messageId, text }) => {
+      const currentMessages = get().messages;
+      const updatedMessages = currentMessages.map((msg) =>
+        msg._id === messageId ? { ...msg, text } : msg
+      );
+      set({ messages: updatedMessages });
+    });
+
+    socket.on("groupMessageEdited", ({ messageId, text, groupId }) => {
+      const { selectedUser: currentSelectedUser, selectedChatType } = get();
+
+      if (
+        selectedChatType === "group" &&
+        currentSelectedUser?._id === groupId
+      ) {
+        const currentMessages = get().messages;
+        const updatedMessages = currentMessages.map((msg) =>
+          msg._id === messageId ? { ...msg, text } : msg
+        );
+        set({ messages: updatedMessages });
+      }
+    });
   },
 
   unsubscribeFromMessages: () => {
@@ -322,5 +361,7 @@ export const useChatStore = create((set, get) => ({
     socket.off("newGroupMessage");
     socket.off("messageDeleted");
     socket.off("groupMessageDeleted");
+    socket.off("messageEdited");
+    socket.off("groupMessageEdited");
   },
 }));

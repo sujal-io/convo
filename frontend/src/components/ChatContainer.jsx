@@ -1,11 +1,11 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useChatStore } from "../store/useChatStore";
 import { useAuthStore } from "../store/useAuthStore";
 import ChatHeader from "./ChatHeader";
 import NoChatHistoryPlaceholder from "./NoChatHistoryPlaceholder";
 import MessageInput from "./MessageInput";
 import MessagesLoadingSkeleton from "./MessagesLoadingSkeleton";
-import { Trash2 as Trash2Icon } from "lucide-react";
+import { Trash2 as Trash2Icon, Pencil as PencilIcon, Check, X } from "lucide-react";
 
 function ChatContainer() {
   const {
@@ -18,7 +18,10 @@ function ChatContainer() {
     unsubscribeFromMessages,
     typingUser,
     deleteMessage,
+    editMessage,
   } = useChatStore();
+  const [editingMessageId, setEditingMessageId] = useState(null);
+  const [editingText, setEditingText] = useState("");
   const { authUser } = useAuthStore();
   const messageEndRef = useRef(null);
 
@@ -103,10 +106,49 @@ function ChatContainer() {
                           className="rounded-lg h-48 object-cover"
                         />
                       )}
-                      {msg.text && (
-                        <p className="mt-2 break-words whitespace-normal">
-                          {msg.text}
-                        </p>
+                      {editingMessageId === msg._id ? (
+                        <div className="mt-2 flex flex-col gap-2">
+                          <textarea
+                            value={editingText}
+                            onChange={(e) => setEditingText(e.target.value)}
+                            className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                            rows={2}
+                            autoFocus
+                          />
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (editingText.trim()) {
+                                  editMessage(msg._id, editingText.trim());
+                                  setEditingMessageId(null);
+                                  setEditingText("");
+                                }
+                              }}
+                              className="flex items-center gap-1 px-2 py-1 rounded bg-cyan-600 hover:bg-cyan-700 text-white text-xs"
+                            >
+                              <Check className="w-3.5 h-3.5" />
+                              Save
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingMessageId(null);
+                                setEditingText("");
+                              }}
+                              className="flex items-center gap-1 px-2 py-1 rounded bg-slate-600 hover:bg-slate-700 text-white text-xs"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        msg.text && (
+                          <p className="mt-2 break-words whitespace-normal">
+                            {msg.text}
+                          </p>
+                        )
                       )}
                       <div className="mt-1 flex items-center justify-between gap-2 text-xs opacity-75">
                         <p>
@@ -115,15 +157,30 @@ function ChatContainer() {
                             minute: "2-digit",
                           })}
                         </p>
-                        {isOwnMessage && (
-                          <button
-                            type="button"
-                            onClick={() => deleteMessage(msg._id)}
-                            className="ml-2 text-slate-300/70 hover:text-red-400 transition-colors"
-                            title="Delete message"
-                          >
-                            <Trash2Icon className="w-4 h-4" />
-                          </button>
+                        {isOwnMessage && editingMessageId !== msg._id && (
+                          <div className="flex items-center gap-1">
+                            {msg.text && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingMessageId(msg._id);
+                                  setEditingText(msg.text);
+                                }}
+                                className="text-slate-300/70 hover:text-cyan-400 transition-colors"
+                                title="Edit message"
+                              >
+                                <PencilIcon className="w-4 h-4" />
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => deleteMessage(msg._id)}
+                              className="text-slate-300/70 hover:text-red-400 transition-colors"
+                              title="Delete message"
+                            >
+                              <Trash2Icon className="w-4 h-4" />
+                            </button>
+                          </div>
                         )}
                       </div>
                     </div>
