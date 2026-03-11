@@ -1,9 +1,9 @@
 # Convo – Real-Time Chat Application
 
-A full-stack **real-time chat application** built with the **MERN stack** and **Socket.IO**.  
+A full-stack real-time chat application built with the MERN stack and Socket.IO.  
 Convo supports personal messaging, group chats, image sharing, typing indicators, and live online user status.
 
-This project demonstrates modern full-stack architecture using **React, Zustand, Express, MongoDB, and WebSockets**.
+This project demonstrates modern full-stack architecture using React, Zustand, Express, MongoDB, and WebSockets.
 
 ---
 
