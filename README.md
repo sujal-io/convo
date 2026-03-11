@@ -116,3 +116,75 @@ This project demonstrates modern full-stack development practices including **se
 - Cloudinary (image storage)
 
 ---
+
+## Project Structure
+
+
+convo/
+│
+├── backend/
+│ ├── controllers/ # Business logic
+│ ├── models/ # Database schemas
+│ ├── routes/ # API endpoints
+│ ├── middlewares/ # Authentication & validation
+│ ├── lib/ # Utility functions
+│ └── server.js # Backend entry point
+│
+├── frontend/
+│ ├── src/
+│ │ ├── components/ # Reusable UI components
+│ │ ├── pages/ # Application pages
+│ │ ├── store/ # Zustand state management
+│ │ ├── hooks/ # Custom React hooks
+│ │ └── lib/ # API utilities
+│ └── public/
+│
+└── README.md
+
+
+---
+
+## Architecture Overview
+
+The application follows a **client–server architecture**.
+
+**Frontend (React)**  
+Handles UI rendering, user interaction, and application state.
+
+**Backend (Node.js + Express)**  
+Manages authentication, API endpoints, and message processing.
+
+**Database (MongoDB)**  
+Stores user accounts, chat data, and message history.
+
+**WebSockets (Socket.IO)**  
+Enables real-time bidirectional communication between connected clients.
+
+---
+
+## Key Concepts Demonstrated
+
+- Real-time communication using **WebSockets**
+- Global state management using **Zustand**
+- Optimistic UI updates
+- Secure authentication using **JWT**
+- Cloud-based media storage using **Cloudinary**
+- Scalable full-stack application architecture
+
+---
+
+## Future Improvements
+
+Possible enhancements:
+
+- Message reactions (👍 ❤️ 🔥)
+- Voice messages
+- Read receipts
+- Push notifications
+- Message search
+- Emoji picker
+- File sharing
+- Group admin roles and permissions
+- End-to-end encryption
+
+---
