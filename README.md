@@ -117,33 +117,6 @@ This project demonstrates modern full-stack development practices including **se
 
 ---
 
-## Project Structure
-
-
-convo/
-│
-├── backend/
-│ ├── controllers/ # Business logic
-│ ├── models/ # Database schemas
-│ ├── routes/ # API endpoints
-│ ├── middlewares/ # Authentication & validation
-│ ├── lib/ # Utility functions
-│ └── server.js # Backend entry point
-│
-├── frontend/
-│ ├── src/
-│ │ ├── components/ # Reusable UI components
-│ │ ├── pages/ # Application pages
-│ │ ├── store/ # Zustand state management
-│ │ ├── hooks/ # Custom React hooks
-│ │ └── lib/ # API utilities
-│ └── public/
-│
-└── README.md
-
-
----
-
 ## Architecture Overview
 
 The application follows a **client–server architecture**.
